@@ -4,4 +4,4 @@
 
 ##content
 
-Sfml practice creating a 1v1 shooter game with diferent characters, platforms and basic physics features
+Sfml practice creating a protect the nexus game with diferent characters, platforms and basic physics features
