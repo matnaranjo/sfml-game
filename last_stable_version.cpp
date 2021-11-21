@@ -497,6 +497,8 @@ void enemies_hit (std::vector<sf::RectangleShape>& enemieshitbox, std::vector<fl
      
 }
 
+
+
 int main (){
 
     int window_widht=1600;
@@ -534,6 +536,10 @@ int main (){
     font.loadFromFile("./font/ARCADECLASSIC.TTF");
     std::string score_string;
     sf::Text score_text;
+    sf::Text start_text;
+    sf::Text pause_text;
+    bool pause = false;
+    bool intro = true;
     
 
     std::vector<sf::RectangleShape> blocks; //saves the information of every block in the screen.
@@ -619,6 +625,52 @@ int main (){
     score_text.setPosition(sf::Vector2f(wx*0.02, wy*0.03));
     score_text.setFillColor(sf::Color::White);
 
+    // pause chart
+    sf::RectangleShape pause_chart(sf::Vector2f(wx*0.1875, wy*0.22222222222));
+    pause_chart.setPosition(sf::Vector2f(wx*0.40625,wy*0.38888888888));
+    pause_chart.setOutlineThickness(3);
+    pause_chart.setOutlineColor(sf::Color::White);
+    pause_chart.setFillColor(sf::Color::Black);
+
+    // pause button 
+    sf::RectangleShape pause_button(sf::Vector2f(wx*0.0625,wy*0.05555555555));
+    pause_button.setPosition(sf::Vector2f(wx*0.46875,wy*0.44444444444));
+    sf::Vector2f pause_button_pos = pause_button.getPosition();
+    sf::Vector2f pause_button_size = pause_button.getSize();
+    pause_button.setOutlineThickness(3);
+    pause_button.setOutlineColor(sf::Color::White);
+    pause_button.setFillColor(sf::Color::Black);
+
+    // intro menu
+    sf::RectangleShape intro_menu(sf::Vector2f(wx*0.1875, wy*0.44444444444));
+    intro_menu.setPosition(sf::Vector2f(wx*0.40625,wy*0.27777777777));
+    intro_menu.setOutlineThickness(3);
+    intro_menu.setOutlineColor(sf::Color::White);
+    intro_menu.setFillColor(sf::Color::Black);
+
+    // start button
+    sf::RectangleShape start_button(sf::Vector2f(wx*0.0625,wy*0.05555555555));
+    start_button.setPosition(sf::Vector2f(wx*0.46875,wy*0.44444444444));
+    sf::Vector2f start_button_pos = start_button.getPosition();
+    sf::Vector2f start_button_size = start_button.getSize();
+    start_button.setOutlineThickness(3);
+    start_button.setOutlineColor(sf::Color::White);
+    start_button.setFillColor(sf::Color::Black);
+
+    // start text
+    start_text.setFont(font);
+    start_text.setCharacterSize(wx*0.015625);
+    start_text.setPosition(sf::Vector2f(wx*0.477,wy*0.454));
+    start_text.setString("Start");
+    start_text.setFillColor(sf::Color::White);
+
+    // pause text
+    pause_text.setFont(font);
+    pause_text.setCharacterSize(wx*0.015625);
+    pause_text.setPosition(sf::Vector2f(wx*0.477,wy*0.454));
+    pause_text.setString("Pause");
+    pause_text.setFillColor(sf::Color::White);
+
 
     // game loop.
     while (window.isOpen()){
@@ -628,82 +680,144 @@ int main (){
                 window.close();
         }
 
-        // getting mouse position for shoting thing to follow.
-        x_mouse = sf::Mouse::getPosition(window).x;
-        y_mouse = sf::Mouse::getPosition(window).y;
+        // main menu
+        if (intro)
+        {
+            // getting mouse position for shoting thing to follow.
+            x_mouse = sf::Mouse::getPosition(window).x;
+            y_mouse = sf::Mouse::getPosition(window).y;
+            window.clear(sf::Color(0,0,0,255));
+            window.draw(intro_menu);
+            window.draw(start_button);
+            window.draw(start_text);
 
-        // set changes in position before checking block and crystal collision
-        direction(x_vel, y_vel, vel_limit, character_pos, character_size, blocks,crystal,enemies1, jump, wx, wy);
-        x_change = dt*multi*x_vel;
-        y_change = dt*multi*y_vel;
-
-        // collision with blocks.
-        for (int i =0;i<blocks.size();i++){
-            if (dynamicrectvrect(character, blocks[i],contact_point, contact_normal, time, x_change, y_change )){
-                x_change += contact_normal.x*std::abs(x_change)*(1-time);
-                y_change += contact_normal.y*std::abs(y_change)*(1-time);
+            if (x_mouse>=start_button_pos.x && y_mouse>=start_button_pos.y && x_mouse<=start_button_pos.x+start_button_size.x && y_mouse<=start_button_pos.y+start_button_size.y){
+                start_button.setOutlineThickness(5);
+                start_text.setCharacterSize(wx*0.017);
+                start_text.setPosition(sf::Vector2f(wx*0.476,wy*0.453));
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                    intro=false;
+                }
+            }
+            else{
+                start_text.setPosition(sf::Vector2f(wx*0.477,wy*0.454));
+                start_text.setCharacterSize(wx*0.015625);
+                start_button.setOutlineThickness(3);
+            }
         }
+        
+        else{
+        // pause verification 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::P)){
+            pause=true;
         }
-        // collision with enemies
-        for (int i =0;i<enemies1.size();i++){
-            if (dynamicrectvrect(character, enemies1[i],contact_point, contact_normal, time, x_change, y_change )){
-                x_change += contact_normal.x*std::abs(x_change)*(1-time);
-                y_change += contact_normal.y*std::abs(y_change)*(1-time);
-        }
-        }
-        //collision with crystal.
-        if (dynamicrectvrect(character, crystal,contact_point, contact_normal, time, x_change, y_change )){
-                x_change += contact_normal.x*std::abs(x_change)*(1-time);
-                y_change += contact_normal.y*std::abs(y_change)*(1-time);
-        }
-        // setting changes after checking collisions.
-        character.move(x_change, y_change);
-        character_life_bar.move(x_change, y_change);
-
-        // new values of character after solving collisions with crystal and blocks
-        character_pos = character.getPosition();
-        character_size = character.getSize();
-
-        // set position of shooting thing pointing to pinter position
-        follow_pointer(x_mouse, y_mouse, character_pos, character_size, shooting_thing_pos, components, wx, wy);
-        shooting_thing.setPosition(shooting_thing_pos);
-        // creating bullet on the screen, moving it in the direction the shooting thing was pointing and deleting them after hitting blocks and enemies.
-        bullets_dir(shooting_thing_pos, components, bullets,bullets_components, shoot_time, reload_time, dt, bullets_available, wx, wy);
-        bullets_move(bullets, bullets_components, blocks,enemies1, enemies_life_points,dt, wx, wy);
-        // spawning enemies, and moving them based on the patterns choosen.
-        spawn_enemies(dt,spawn_timer,enemies1hitbox, enemies1,enemies_life_bar,enemies_life_points, enemy_class, enemies_timer,enemies_hitting, wx, wy);
-        enemies_movement(enemies1hitbox, enemies1,enemies_life_bar,enemies_hitting, enemy_class, blocks,crystal,character, multi, dt);
-        enemies_update(enemies1hitbox, enemies1, enemies_life_bar, enemies_life_points,enemy_class, enemies_timer,enemies_hitting, wx, wy, score);
-        enemies_hit(enemies1hitbox, enemies_timer, enemies_hitting, crystal, crystal_life_bar, crystal_life_points, character, character_life_bar, character_life_points, dt, wx, wy);
-
-        score_string = "Score  " + std::to_string(score);
-        score_text.setString(score_string);
 
 
-        // draw everything in the screen.
-        window.clear(sf::Color(0,0,0,255));
-        for (int e=0; e<enemies1hitbox.size();e++){
-            window.draw(enemies1hitbox[e]);
-        }
-        for (int e=0; e<enemies1.size();e++){
-            window.draw(enemies1[e]);
-        }
-        for (int i =0;i<blocks.size();i++){
-            window.draw(blocks[i]);
-        }
-        for(int b=0;b<bullets.size();b++){
-            window.draw(bullets[b]);
-        }
-        window.draw(shooting_thing);
-        window.draw(character);
-        window.draw(crystal);
-        window.draw(character_life_bar);
-        window.draw(crystal_life_bar);
-        for (int e=0; e<enemies_life_bar.size();e++){
-            window.draw(enemies_life_bar[e]);
+        if (!pause){
+    
+            // getting mouse position for shoting thing to follow.
+            x_mouse = sf::Mouse::getPosition(window).x;
+            y_mouse = sf::Mouse::getPosition(window).y;
+
+            // set changes in position before checking block and crystal collision
+            direction(x_vel, y_vel, vel_limit, character_pos, character_size, blocks,crystal,enemies1, jump, wx, wy);
+            x_change = dt*multi*x_vel;
+            y_change = dt*multi*y_vel;
+
+            // collision with blocks.
+            for (int i =0;i<blocks.size();i++){
+                if (dynamicrectvrect(character, blocks[i],contact_point, contact_normal, time, x_change, y_change )){
+                    x_change += contact_normal.x*std::abs(x_change)*(1-time);
+                    y_change += contact_normal.y*std::abs(y_change)*(1-time);
+            }
+            }
+            // collision with enemies
+            for (int i =0;i<enemies1.size();i++){
+                if (dynamicrectvrect(character, enemies1[i],contact_point, contact_normal, time, x_change, y_change )){
+                    x_change += contact_normal.x*std::abs(x_change)*(1-time);
+                    y_change += contact_normal.y*std::abs(y_change)*(1-time);
+            }
+            }
+            //collision with crystal.
+            if (dynamicrectvrect(character, crystal,contact_point, contact_normal, time, x_change, y_change )){
+                    x_change += contact_normal.x*std::abs(x_change)*(1-time);
+                    y_change += contact_normal.y*std::abs(y_change)*(1-time);
+            }
+            // setting changes after checking collisions.
+            character.move(x_change, y_change);
+            character_life_bar.move(x_change, y_change);
+
+            // new values of character after solving collisions with crystal and blocks
+            character_pos = character.getPosition();
+            character_size = character.getSize();
+
+            // set position of shooting thing pointing to pinter position
+            follow_pointer(x_mouse, y_mouse, character_pos, character_size, shooting_thing_pos, components, wx, wy);
+            shooting_thing.setPosition(shooting_thing_pos);
+            // creating bullet on the screen, moving it in the direction the shooting thing was pointing and deleting them after hitting blocks and enemies.
+            bullets_dir(shooting_thing_pos, components, bullets,bullets_components, shoot_time, reload_time, dt, bullets_available, wx, wy);
+            bullets_move(bullets, bullets_components, blocks,enemies1, enemies_life_points,dt, wx, wy);
+            // spawning enemies, and moving them based on the patterns choosen.
+            spawn_enemies(dt,spawn_timer,enemies1hitbox, enemies1,enemies_life_bar,enemies_life_points, enemy_class, enemies_timer,enemies_hitting, wx, wy);
+            enemies_movement(enemies1hitbox, enemies1,enemies_life_bar,enemies_hitting, enemy_class, blocks,crystal,character, multi, dt);
+            enemies_update(enemies1hitbox, enemies1, enemies_life_bar, enemies_life_points,enemy_class, enemies_timer,enemies_hitting, wx, wy, score);
+            enemies_hit(enemies1hitbox, enemies_timer, enemies_hitting, crystal, crystal_life_bar, crystal_life_points, character, character_life_bar, character_life_points, dt, wx, wy);
+
+            score_string = "Score  " + std::to_string(score);
+            score_text.setString(score_string);
+
+
+            // draw everything in the screen.
+            window.clear(sf::Color(0,0,0,255));
+            for (int e=0; e<enemies1hitbox.size();e++){
+                window.draw(enemies1hitbox[e]);
+            }
+            for (int e=0; e<enemies1.size();e++){
+                window.draw(enemies1[e]);
+            }
+            for (int i =0;i<blocks.size();i++){
+                window.draw(blocks[i]);
+            }
+            for(int b=0;b<bullets.size();b++){
+                window.draw(bullets[b]);
+            }
+            window.draw(shooting_thing);
+            window.draw(character);
+            window.draw(crystal);
+            window.draw(character_life_bar);
+            window.draw(crystal_life_bar);
+            for (int e=0; e<enemies_life_bar.size();e++){
+                window.draw(enemies_life_bar[e]);
+            }
+
+            window.draw(score_text);
+
         }
 
-        window.draw(score_text);
+        else{
+            // getting mouse position for shoting thing to follow.
+            x_mouse = sf::Mouse::getPosition(window).x;
+            y_mouse = sf::Mouse::getPosition(window).y;
+            window.clear(sf::Color(0,0,0,255));
+            window.draw(pause_chart);
+            window.draw(pause_button);
+            window.draw(pause_text);
+            if (x_mouse>=pause_button_pos.x && y_mouse>=pause_button_pos.y && x_mouse<=pause_button_pos.x+pause_button_size.x && y_mouse<=pause_button_pos.y+pause_button_size.y){
+                pause_button.setOutlineThickness(5);
+                pause_text.setCharacterSize(wx*0.017);
+                pause_text.setPosition(sf::Vector2f(wx*0.476,wy*0.453));
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                    pause=false;
+                }
+            }
+            else{
+                pause_text.setPosition(sf::Vector2f(wx*0.477,wy*0.454));
+                pause_text.setCharacterSize(wx*0.015625);
+                pause_button.setOutlineThickness(3);
+            }
+        }
+        
+        }
         window.display();
 
         // restarting the clock.
